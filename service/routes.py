@@ -62,7 +62,21 @@ def create_accounts():
 ######################################################################
 
 # ... place you code here to LIST accounts ...
-
+@app.route("/accounts", methods=["GET"])
+def read_accounts():
+    """
+    Read all accounts
+    This endpoint will read all accounts
+    """
+    app.logger.info("Request to read all accounts")
+    check_content_type("application/json")
+    accounts = Account.all()
+    accounts_list = [account.serialize() for account in accounts]
+    
+    app.logger.info("Returning [%s] accounts", len(accounts_list))
+    return make_response(
+        jsonify(accounts_list), status.HTTP_200_OK
+    )
 
 ######################################################################
 # READ AN ACCOUNT
@@ -91,6 +105,27 @@ def read_account(account_id):
 ######################################################################
 
 # ... place you code here to UPDATE an account ...
+@app.route("/accounts/<int:account_id>", methods=["PUT"])
+def update_account(account_id):
+    """
+    Update a single Account
+    This endpoint will update an Account based on the ID
+    """
+    app.logger.info("Request to update an Account with id: %s", account_id)
+    check_content_type("application/json")
+
+    # Find the account first
+    get_account = Account.find(account_id)
+    if not get_account:
+        abort(status.HTTP_404_NOT_FOUND, f"Account with id [{account_id}] cant be found.")
+
+    # Passing the new request here
+    get_account.deserialize(request.get_json())
+    get_account.update()
+    result = get_account.serialize()
+    return make_response(
+        jsonify(result), status.HTTP_200_OK
+    )
 
 
 ######################################################################
@@ -98,6 +133,23 @@ def read_account(account_id):
 ######################################################################
 
 # ... place you code here to DELETE an account ...
+@app.route("/accounts/<int:account_id>", methods=["DELETE"])
+def delete_account(account_id):
+    """
+    Delete a single Account
+    This endpoint will delete an Account based on the ID
+    """
+    app.logger.info("Request to delete an Account with id: %s", account_id)
+    check_content_type("application/json")
+
+    # Find the account first
+    get_account = Account.find(account_id)
+    if get_account:
+        get_account.delete()
+    
+    return make_response(
+        "", status.HTTP_204_NO_CONTENT
+    )
 
 
 ######################################################################
